@@ -11,8 +11,8 @@ $link=Connection();
 
 function customError($errno, $errstr, $address, $response) {
 	$link=Connection();
-	echo "<b>Error:</b> [$errno] $errstr  <p>";
-	$sql="Insert into niceHashErrors (address, description, data) values ('".$address."','".$errstr."','get2.php');";
+	echo "<b>Error:</b> [$errno] $errstr  ";
+	$sql="Insert into niceHashErrors (address, description, data) values ('".$address."','".$errstr."','get_rigs2.php');";
 		echo $sql;
 		$result = mysqli_query( $link,$sql) or die('Error; ' . mysqli_error($link));
   }
@@ -25,7 +25,7 @@ $result = mysqli_query($link,$query);
 $row = mysqli_fetch_assoc($result);
 $batchId = isset($row['batchId']) ? $row['batchId'] : 0;
 
-$query="select address from niceHashKeys where address not in (select address from rigs2_polling where ts>Date_Add(now(), INTERVAL -4.1 MINUTE));";
+$query="select address from niceHashKeys where ignoreRecord='false' and address not in (select address from rigs2_polling where ts>Date_Add(now(), INTERVAL -4.1 MINUTE));";
 //echo $query . "<br>";
 
 echo date("Y-m-d H:i:s");
@@ -54,7 +54,7 @@ while($row = mysqli_fetch_array($results))
 		$result = mysqli_query( $link,$sql);
 		
 		$sql="Update niceHashKeys set lastPollResult='".substr($status_line, 0, 255)."' where address='$address';";
-		echo "<p>".$sql;
+		echo "".$sql;
 		$link->query($sql);
 
 		$errors++;
@@ -66,7 +66,7 @@ while($row = mysqli_fetch_array($results))
 
 	var_dump($response);
     //exit();
-	echo "<p>";
+	echo "";
 	
 	$workerId = 0;
 	if (isset($json['miningRigs'])) 
@@ -110,7 +110,7 @@ while($row = mysqli_fetch_array($results))
 					'".$devices['revolutionsPerMinutePercentage']."',
 					'".$devices['intensity']['description']."'	
 					);";
-					echo "<p>".$sql;
+					echo "insert devices: ".$sql;
 					//exit();
 					$result = mysqli_query( $link,$sql) or die('Error; ' . mysqli_error($link));
 
@@ -153,7 +153,7 @@ while($row = mysqli_fetch_array($results))
 							'".$stats['speedRejectedR5Other']."',
 							'".$stats['speedRejectedTotal']."'
 						);";
-						echo "<p>".$sql;
+						echo " insert stats: ".$sql;
 						//exit();
 						$result = mysqli_query( $link,$sql) or die('Error; ' . mysqli_error($link));
 					}//foreach stats
@@ -184,13 +184,14 @@ while($row = mysqli_fetch_array($results))
 				'".$miningRigs['minerStatus']."',
 				'".$rigPowerMode."'
 				);";
-				echo "<p>".$sql;
-				//exit();
+				echo "insert rigs2: ".$sql;
 				$result = mysqli_query( $link,$sql) or die('Error; ' . mysqli_error($link));
 				//echo $result;
 
 			}//foreach miningRigs
 	}//if miningRigs
+
+	$lastPayoutTimestamp = isset($json['lastPayoutTimestamp']) ? $json['lastPayoutTimestamp'] : 0;
 
 	$sql = "Insert into rigs2_polling (
 		batchId,
@@ -208,35 +209,33 @@ while($row = mysqli_fetch_array($results))
 			'".$json['totalProfitabilityLocal']."',
 			'".$json['unpaidAmount']."',
 			'".$json['nextPayoutTimestamp']."',
-			'".$json['lastPayoutTimestamp']."'
+			'$lastPayoutTimestamp'
 		);";
-		echo "<p>".$sql;
-		//exit();
+		
+		echo "insert rigs2_polling: ".$sql;
 		$result = mysqli_query( $link,$sql) or die('Error; ' . mysqli_error($link));
-		//insert polling record
-		//exit();
-
-
-	$sql="Update niceHashKeys set lastPollResult='".substr($response, 0, 4000)."', lastUpdate=now() where address='$address';";
-	echo "<p>".$sql;
-	//$link->query($sql);
+		
 	//sleep(1);
 }//while
+
 $sql="update rigs2 set ignoreReading='true' where localProfitability>0 and profitability*50000-localProfitability*50000 > 10 and ignoreReading='false';"; //hide rows where profitiably is out of whack
-//echo "<p>".$sql;
+//echo "".$sql;
 //$link->query($sql);
 
-$sql = "Insert into pollingLog (
+	$sql = "Insert into pollingLog (
 	page,
 	batchId,
 	records,
 	errors
-  )
-  values (
-	  'get_rigs2.php',
-	  $batchId,
-	  $records,
-	  $errors);";
-	  echo $sql;
-	  $result = mysqli_query( $link,$sql);
+	)
+	values (
+	'get_rigs2.php',
+	$batchId,
+	$records,
+	$errors
+	);";
+
+	echo " insert pollingLog: ".$sql;
+	$result = mysqli_query( $link,$sql);
+
 ?>

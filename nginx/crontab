@@ -1,3 +1,3 @@
 */1 * * * * root php /www-root/get_rigs2.php >> /var/log/cron.log 2>&1
-*/1 * * * * root php /www-root/get_activeWorkers.php >> /var/log/cron.log 2>&1
+1-59/1 * * * * root php /www-root/get_activeWorkers.php >> /var/log/cron.log 2>&1
 # Don't remove the empty line at the end of this file. It is required to run the cron job

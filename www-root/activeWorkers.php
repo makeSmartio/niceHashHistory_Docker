@@ -10,7 +10,6 @@
   <meta name="viewport" content="initial-scale=1.0" />
 <link rel="stylesheet" href="../DarkModeCSS/style.css">
 <link rel="apple-touch-icon" href="/favicon-180.png">
-
 <?php
 $time = microtime();
 $time = explode(' ', $time);
@@ -45,7 +44,7 @@ $rowCount = 0;
     $address = isset($_GET['address']) ? $_GET['address'] : $address;
     $currency = isset($_GET['currency']) ? $_GET['currency'] : $currency;
     $id = isset($_GET['id']) ? $_GET['id'] : 0;
-    $DaysBack = isset($_GET['DaysBack']) ? $_GET['DaysBack'] : '3000';
+    $DaysBack = isset($_GET['DaysBack']) ? $_GET['DaysBack'] : '7';
     $darkMode = isset($_GET['darkMode']) ? $_GET['darkMode'] : $darkMode;
     $type = isset($_GET['type']) ? $_GET['type'] : 'hourly';
     $queryString = $_SERVER['QUERY_STRING'];
@@ -72,8 +71,7 @@ $rowCount = 0;
       'httponly' => true,
       'samesite' => 'None',
   ]);
-
-  {
+    {
       setcookie('address', $address, [
         'expires' => time() + (10 * 365 * 24 * 60 * 60),
         'path' => '/',
@@ -111,7 +109,7 @@ $rowCount = 0;
     }
 
 ?>
-<script src="DarkModeCSS/darkmode.js"></script>
+<script src="../DarkModeCSS/darkmode.js"></script>
 
 <script type="text/javascript">
 function loadDarkMode() {
@@ -200,7 +198,7 @@ function loadDarkMode() {
       {
         echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
         //exit();
-        $address = '';
+        //$address = '';
       }
       
       $query = "Select min(id) as id 
@@ -232,22 +230,21 @@ function loadDarkMode() {
       else
       {$rigs .= "'".$row['rigName']."',";}
 
-
       if ($currency=="BTC")
         {
-          $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*1 end) as '".$row['rigName']."'";
+          $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then profitability*1 end) as '".$row['rigName']."'";
           $chartTitle = "Average SatosBTC per Day";
           $currencySymbol = "";
         }
       elseif ($currency=="Satoshi")
       {
-        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*100000 end) as '".$row['rigName']."'";
+        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then profitability*100000 end) as '".$row['rigName']."'";
         $chartTitle = "Average Satoshi per Day";
         $currencySymbol = "";
       }
-    else
+      else
       {
-        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*".$exchange_rate." end) as '".$row['rigName']."'";
+        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then profitability*".$exchange_rate." end) as '".$row['rigName']."'";
         $chartTitle = "Average Dollars per Day";
         $currencySymbol = "$";
       }
@@ -259,7 +256,7 @@ function loadDarkMode() {
     $query = "Select  
     ".$grouping." as vdate
     ".$rigSelect." 
-    From rigs2 
+    From niceHash 
     Where address = '".$address."' and ts>=DATE_ADD(now(), INTERVAL ".($DaysBack*-1)." DAY) and ignoreReading='false'
     Group by ".$grouping."
     Order by ts;";
@@ -303,11 +300,11 @@ google.load('visualization', '1', {packages: ['corechart', 'table']});
         $rowTotal=0;
         foreach ($rigArray as $rig)
         {
-          echo number_format($row[$rig],6,'.','').",";
+          echo number_format($row[$rig],8,'.','').",";
           $rowTotal=$rowTotal+$row[$rig];
         }
         if ($numOfRigs>1){
-          echo number_format($rowTotal,6,'.','').",";
+          echo number_format($rowTotal,8,'.','').",";
         }
         echo "]," . PHP_EOL;
       }
@@ -319,6 +316,7 @@ google.load('visualization', '1', {packages: ['corechart', 'table']});
   date_formatter.format(data, 0);
 
   <?php
+
 if ($currency=="Satoshi") 
 {
   echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 2, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
@@ -343,7 +341,8 @@ else
 {
   echo "formatter.format(data, 1);";
 }
-  ?>
+  
+?>
 
   //showEvery = parseInt(data.getNumberOfRows() / 6);
   
@@ -353,7 +352,7 @@ else
   var options = {
     strictFirstColumnType: true
     ,colors: seriesColors
-    ,chartArea:{left:40,top:40,bottom:45,width:'100%'}
+    ,chartArea:{left:50,top:40,bottom:45,width:'100%'}
     ,height: 300
     ,legend: { position : 'bottom', textStyle: {color: 'gray'}}
     ,'title':'<?=$chartTitle?>'
@@ -385,28 +384,45 @@ else
 
   chart.draw(view, options);
 
-  var table = new google.visualization.Table(document.getElementById('table_div'));
-  //table.setColumns([0,1,2,4]);
-  //table.setColumns(viewColumns);
-  
-  var tableOptions = 
-    {
-      allowHtml: true, 
-      showRowNumber: false, 
-      cssClassNames: { 
-        headerRow: 'headerRow',
-        tableRow: '#DCDCDC',
-        oddTableRow: 'oddTableRow',
-        selectedTableRow: 'selectedTableRow',
-        hoverTableRow: 'hoverTableRow',
-        headerCell: 'headerCell',
-        tableCell: 'tableCell',
-        rowNumberCell: 'rowNumberCell'
-        ,backgroundColor: 'transparent'
+  $('#series').find(':checkbox').change(function() {
+    var cols = [0];
+    var colors = [];
+    options.series = null;
+    $('#series').find(':checkbox:checked').each(function() {
+      var value = parseInt($(this).attr('value'));
+      cols.push(value);
+      colors.push(seriesColors[value - 1]);
+      options.series = {vAxes: { 0: {format: '<?=$currencySymbol?>#,###'}, 1: {format: '#,###',ticks: [0,1]},}}
       }
-    }
-  table.draw(data, tableOptions);
-  //table.draw(data);
+    );
+    //window.alert(cols);
+    view.setColumns(0,1);
+    options.colors = colors;
+    chart.draw(view, options);
+  });
+
+    var table = new google.visualization.Table(document.getElementById('table_div'));
+    //table.setColumns([0,1,2,4]);
+    //table.setColumns(viewColumns);
+    
+    var tableOptions = 
+      {
+        allowHtml: true, 
+        showRowNumber: false, 
+        cssClassNames: { 
+          headerRow: 'headerRow',
+          tableRow: '#DCDCDC',
+          oddTableRow: 'oddTableRow',
+          selectedTableRow: 'selectedTableRow',
+          hoverTableRow: 'hoverTableRow',
+          headerCell: 'headerCell',
+          tableCell: 'tableCell',
+          rowNumberCell: 'rowNumberCell'
+          ,backgroundColor: 'transparent'
+        }
+      }
+    table.draw(data, tableOptions);
+    //table.draw(data);
 
   google.visualization.events.addListener(chart, 'select', function() {
     var selectedItem = chart.getSelection()[0];   
@@ -426,18 +442,19 @@ else
   });
 
 //errorHandler("test");
-function errorHandler(errorMessage) {
-    //curisosity, check out the error in the console
-    //console.log(errorMessage);
-    //window.alert(viewColumns);
-    var req = new XMLHttpRequest();
-    var params = "msg=" + (JSON.stringify(errorMessage)) + '&amp;<?php echo $address ?>;viewColumns=' + viewColumns + 'url=' + "?<?=$queryString?>";
-    req.open("POST", "/error.php?<?=$queryString?>");
-    req.send(params);
 
-    //simply remove the error, the user never see it
-    google.visualization.errors.removeError(errorMessage.id);
-  }
+  function errorHandler(errorMessage) {
+      //curisosity, check out the error in the console
+      //console.log(errorMessage);
+      //window.alert(viewColumns);
+      var req = new XMLHttpRequest();
+      var params = "msg=" + (JSON.stringify(errorMessage)) + '&amp;<?php echo $address ?>;viewColumns=' + viewColumns + 'url=' + "?<?=$queryString?>";
+      req.open("POST", "/error.php?<?=$queryString?>");
+      req.send(params);
+
+      //simply remove the error, the user never see it
+      google.visualization.errors.removeError(errorMessage.id);
+    }
 }
 
 </script>
@@ -455,13 +472,10 @@ function errorHandler(errorMessage) {
 .TopRight { grid-area: TopRight; }
 .Middle { grid-area: Middle; }
 
-
 .timezone-select{
  width:150px;}
-
- .currency-select{
+.currency-select{
  width:100px;}
-
 </style>
 
 <script type='text/javascript'>
@@ -469,7 +483,7 @@ function errorHandler(errorMessage) {
   $(document).ready(function(){    
 
     $(".id-select").change(function(){      
-     var page_url = "?id="+$(".id-select").val()+"&type=<?=$type?>&DaysBack=3000&darkMode=<?=$darkMode?>";    
+     var page_url = "?id="+$(".id-select").val()+"&type=<?=$type?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>";    
      $(location).attr('href',page_url);
     });
 
@@ -479,24 +493,25 @@ function errorHandler(errorMessage) {
     });
 
     $(".timezone-select").change(function(){      
-     var page_url = "?timezone="+$(".timezone-select").val()+"&";    
+     var page_url = "?timezone="+$(".timezone-select").val()+"&type=<?=$type?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>";    
      $(location).attr('href',page_url);
     });
 
-    var refreshit = setInterval(getLatestMining, 60000);
-    getLatestMining();
+  //uncomment these if you want to update the page title every 60 seconds to the current profitability
+  //var refreshit = setInterval(getLatestMining, 60000);
+  //getLatestMining();
 
   function getLatestMining(){
 
-    var url = "getNicehashNow.php?id=<?=$id?>&currency=<?=$currency?>";   
-    $.post( url, function(data) {
-        //console.log("running");
-        console.log(data);
-        document.title = data+' Nicehash History';
-        var d = new Date();
-        //$('#current_div').html("<p>Real time:"+d.toLocaleTimeString() + " " +data);
-      });
-    }
+  var url = "getNicehashNow.php?id=<?=$id?>&currency=<?=$currency?>";   
+  $.post( url, function(data) {
+      //console.log("running");
+      console.log(data);
+      document.title = data+' Nicehash History';
+      var d = new Date();
+      //$('#current_div').html("<p>Last poll: " +data);
+    });
+  }
   
 });
 
@@ -506,7 +521,6 @@ function errorHandler(errorMessage) {
 <p>
 <div class="grid-container">
 <div class="TopLeft">
-<form method="GET">
   <?php 
   //View live api data on <a href=https://api2.nicehash.com/main/api/v2/mining/external/$address/rigs/activeWorkers>Nicehash</a>
   ?>
@@ -535,12 +549,20 @@ Show:
 ?>
 <p>
 <?php
-  $query = "select count(id) as apiErrors from niceHashErrors where ts>date_add(now(), INTERVAL -60 MINUTE);";
+  $query = "select sum(errors) as apiErrors from pollingLog where ts>date_add(now(), INTERVAL -60 MINUTE) and page='get.php';";
   $result = mysqli_query($link,$query);
-  $getByID = mysqli_fetch_assoc($result);
-  $apiErrors = $getByID['apiErrors'];
+  $row = mysqli_fetch_assoc($result);
+  $apiErrors = (int)intval($row['apiErrors']);
+  //echo $apiErrors;
 ?>
-<?php if ($apiErrors<5) echo "Please be patient, Nicehash API errors in the past hour: $apiErrors"; ?>
+<?php 
+//if ($apiErrors<5) 
+ {
+  echo "Please be patient, Nicehash API errors in the past hour: $apiErrors"; 
+  }
+?>
+<p>
+Check out a new version of this page with data from a different API and let me know your thoughts! <a href=rigs2.php>rigs2</a>
 </div>
   <div class="TopRight"  text-align: right;>
   <a href=addMe.php>Add Me!</a>
@@ -553,9 +575,8 @@ Show:
 Timezone: 
      <select class="timezone-select" name="timezone-select">
   <?php
-     $query = "Select value, label
+    $query = "Select value, label
     From timezones;";
-
     $result = mysqli_query($link,$query);
 
     while($row = mysqli_fetch_array($result))
@@ -590,23 +611,9 @@ Timezone:
     }
 ?>
      </select>
-
-
     </div>
-
   </div>
   
- <ul id="series" style="list-style: none">
- <?php
- $i=1;
-  //foreach ($rigArray as $rig)
-      {
-        //echo "<input class=box type=checkbox id=$rig name=series value=".$i." />$rig</span>";
-        $i++;
-      }
-?>
-</ul>
-
 <div id="chart_div"></div>
 <div>
 <?php 
@@ -634,9 +641,9 @@ echo "</select>"
 ?>
 </div>
 <div id="current_div"></div>
-
 <div id="table_div"></div>
-</form>
+
+
 <?php
 //echo $query;
 
