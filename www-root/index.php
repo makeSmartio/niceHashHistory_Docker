@@ -8,7 +8,7 @@
 
     <script src="https://www.google.com/jsapi"></script>
   <meta name="viewport" content="initial-scale=1.0" />
-<link rel="stylesheet" href="DarkModeCSS/style.css">
+<link rel="stylesheet" href="../DarkModeCSS/style.css">
 <link rel="apple-touch-icon" href="/favicon-180.png">
 
 <?php
@@ -57,7 +57,6 @@ $rowCount = 0;
     elseif (isset($_COOKIE["timezone"]))
       $timezone = $_COOKIE["timezone"];
     //echo $timezone;
-
     setcookie('timezone', $timezone, [
       'expires' => time() + (10 * 365 * 24 * 60 * 60),
       'path' => '/',
@@ -73,8 +72,8 @@ $rowCount = 0;
       'httponly' => true,
       'samesite' => 'None',
   ]);
-
-  {
+  //if ($address != '3DNiqKSF34qFqaMMnMGjjnARd7NgXgtdZ9')
+    {
       setcookie('address', $address, [
         'expires' => time() + (10 * 365 * 24 * 60 * 60),
         'path' => '/',
@@ -126,6 +125,7 @@ function loadDarkMode() {
   $my_array = json_decode($page, true);
   $exchange_rate = $my_array[2]["rate"];
 
+
   $timeOffset=$timezone;
 
   if ($type == 'all')
@@ -158,25 +158,56 @@ function loadDarkMode() {
       echo "Failed to connect to MySQL: " . mysqli_connect_error();
     }
 
-    $query = "Select distinct address
-    From niceHashKeys
-    order by id desc;";
-
-    $result = mysqli_query($link,$query);
-
-    if (mysqli_num_rows($result)==0)
+    if ($id == 0)
     {
-      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
-      //exit();
-      $address = '';
-      $id=1;
+      $query = "Select address, id
+      From niceHashKeys
+      order by id desc;";
+      
+      //echo $sql;
+
+      $result = mysqli_query($link,$query);
+
+      if (mysqli_num_rows($result)==0)
+      {
+        echo "<p><p>No data yet. Did you <a href=addMe.php>add</a> yourself?";
+        //exit();
+        $address = '';
+        $id=1;
+      }
+      else
+      {
+      $result = mysqli_fetch_assoc($result);
+      $address = $result['address'];
+      $id = $result['id'];
+      //echo $id." ".$address;
+      }
     }
     else
     {
-    $getByID = mysqli_fetch_assoc($result);
-    $address = $getByID['address'];
-    //echo "id:$id address:$address";
-    }
+  
+      $query = "Select id, address
+      From niceHashKeys 
+      Where id = ".$id.";";
+      
+      //echo $query;
+      $result = mysqli_query($link,$query);
+
+      if (mysqli_num_rows($result)==0)
+      {
+        echo "<p>1<p>No data for this address yet. ";
+        //exit();
+        $address = '';
+      }
+      else
+      {
+        $rows = mysqli_fetch_assoc($result);
+        $address = $rows['address'];
+        $id = $rows['id'];
+        //echo $id." ".$address;
+      }
+    }  
+    //$query = "Select distinct rigName, rigName&workerId as rigNameAndworkerId
 
     $query = "Select distinct rigName
     From niceHash
@@ -191,11 +222,7 @@ function loadDarkMode() {
     {
       $numOfRigs++;
       $rigArray[] = $row['rigName'];
-      if (isset($_GET['id']))
-      {$rigs .= "'rig$numOfRigs',";}
-      else
-      {$rigs .= "'".$row['rigName']."',";}
-
+      $rigs .= "'".$row['rigName']."',";
 
       if ($currency=="BTC")
         {
@@ -217,8 +244,6 @@ function loadDarkMode() {
       }
         
     }
-    //echo $rigSelect;
-    //echo "rigs: " . $rigs;
 
     $query = "Select  
     ".$grouping." as vdate
@@ -234,7 +259,7 @@ function loadDarkMode() {
 
     if (mysqli_num_rows($result)==0)
     {
-      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself yet?";
+      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
       //exit();
     }
 ?>
@@ -406,6 +431,11 @@ function errorHandler(errorMessage) {
 
 </script>
 <style>
+.green {color: #4CAF50;} /* Green */
+.blue {color: #2196F3;} /* Blue */
+.orange {color: #ff9800;} /* Orange */
+.red {color: #f44336;} /* Red */ 
+.gray {color: #e7e7e7; color: black;} /* Gray */ 
 
 .grid-container {
   display: grid;
@@ -419,13 +449,22 @@ function errorHandler(errorMessage) {
 .TopRight { grid-area: TopRight; }
 .Middle { grid-area: Middle; }
 
-
+select {
+  // A reset of styles, including removing the default dropdown arrow
+  appearance: none;
+  // Additional resets for further consistency
+  background-color: transparent;
+  border: none;
+  padding: 0 1em 0 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: inherit;
+  line-height: inherit;
+}
 .timezone-select{
- width:150px;}
-
- .currency-select{
- width:100px;}
-
+ width:150px;   
+}
 </style>
 
 <script type='text/javascript'>
@@ -505,8 +544,10 @@ Show:
   $apiErrors = $getByID['apiErrors'];
 ?>
 <?php if ($apiErrors<5) echo "Please be patient, Nicehash API errors in the past hour: $apiErrors"; ?>
-This is the newer API. If you want to see the old API, it is here: 
+<p>
+We are now using the newer API. If you want to see the old API with data that goes back a little more, it is here: 
 <a href="activeWorkers.php?type=<?=$type?>&id=<?=$id?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>">activeWorkers</a>
+
 </div>
   <div class="TopRight"  text-align: right;>
   <a href=addMe.php>Add Me!</a>

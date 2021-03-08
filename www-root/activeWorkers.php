@@ -161,24 +161,54 @@ function loadDarkMode() {
       echo "Failed to connect to MySQL: " . mysqli_connect_error();
     }
 
-    $query = "Select distinct address
-    From niceHashKeys
-    order by id desc;";
-
-    $result = mysqli_query($link,$query);
-
-    if (mysqli_num_rows($result)==0)
+    if ($id == 0)
     {
-      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
-      //exit();
-      $address = '';
-      $id=1;
+      $query = "Select address, id
+      From niceHashKeys
+      order by id desc;";
+      
+      //echo $sql;
+
+      $result = mysqli_query($link,$query);
+
+      if (mysqli_num_rows($result)==0)
+      {
+        echo "<p><p>No data yet. Did you <a href=addMe.php>add</a> yourself?";
+        //exit();
+        $address = '';
+        $id=1;
+      }
+      else
+      {
+      $result = mysqli_fetch_assoc($result);
+      $address = $result['address'];
+      $id = $result['id'];
+      //echo $id." ".$address;
+      }
     }
     else
     {
-    $getByID = mysqli_fetch_assoc($result);
-    $address = $getByID['address'];
-    //echo "id:$id address:$address";
+  
+      $query = "Select id, address
+      From niceHashKeys 
+      Where id = ".$id.";";
+      
+      //echo $query;
+      $result = mysqli_query($link,$query);
+
+      if (mysqli_num_rows($result)==0)
+      {
+        echo "<p>1<p>No data for this address yet. ";
+        //exit();
+        $address = '';
+      }
+      else
+      {
+        $rows = mysqli_fetch_assoc($result);
+        $address = $rows['address'];
+        $id = $rows['id'];
+        //echo $id." ".$address;
+      }
     }
 
     $query = "Select distinct rigName
