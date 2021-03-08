@@ -49,7 +49,7 @@ $rowCount = 0;
     $darkMode = isset($_GET['darkMode']) ? $_GET['darkMode'] : $darkMode;
     $type = isset($_GET['type']) ? $_GET['type'] : 'hourly';
     $queryString = $_SERVER['QUERY_STRING'];
-    
+    $numRows=0;
 
     $timezone = -5;
     if (isset($_GET['timezone']))
@@ -208,229 +208,10 @@ function loadDarkMode() {
       }
     }  
     //$query = "Select distinct rigName, rigName&workerId as rigNameAndworkerId
-
-    $query = "Select distinct rigName
-    From niceHash
-    Where address='".$address."';";
-
-    $result = mysqli_query($link,$query);
-
-    $rigs = "";
-    $rigSelect = "";
-    $numOfRigs = 0;
-    while($row = mysqli_fetch_array($result))
-    {
-      $numOfRigs++;
-      $rigArray[] = $row['rigName'];
-      $rigs .= "'".$row['rigName']."',";
-
-      if ($currency=="BTC")
-        {
-          $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*1 end) as '".$row['rigName']."'";
-          $chartTitle = "Average SatosBTC per Day";
-          $currencySymbol = "";
-        }
-      elseif ($currency=="Satoshi")
-      {
-        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*100000 end) as '".$row['rigName']."'";
-        $chartTitle = "Average Satoshi per Day";
-        $currencySymbol = "";
-      }
-    else
-      {
-        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*".$exchange_rate." end) as '".$row['rigName']."'";
-        $chartTitle = "Average Dollars per Day";
-        $currencySymbol = "$";
-      }
-        
-    }
-
-    $query = "Select  
-    ".$grouping." as vdate
-    ".$rigSelect." 
-    From rigs2 
-    Where address = '".$address."' and ts>=DATE_ADD(now(), INTERVAL ".($DaysBack*-1)." DAY) and ignoreReading='false'
-    Group by ".$grouping."
-    Order by ts;";
-    
-    //echo $query;
-
-    $result = mysqli_query($link,$query);
-
-    if (mysqli_num_rows($result)==0)
-    {
-      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
-      //exit();
-    }
 ?>
 
 <title>niceHash History</title>
-
-<script type='text/javascript'>
-  
-  var viewColumns = [0,1];
-  i = 0;
-  var data;
-
-google.load('visualization', '1', {packages: ['corechart', 'table']});
-//google.load("visualization", "1", {packages:["corechart"]});
-  google.setOnLoadCallback(drawChart);
-  function drawChart() {
-    var data = google.visualization.arrayToDataTable([
-    <?php
-      
-      if ($numOfRigs>1){
-        echo "['Date', ".$rigs."'Total'],";
-      }
-      else
-      {
-        echo "['Date', ".$rigs."],";
-      }
-      while($row = mysqli_fetch_array($result))
-      {
-        echo "[new Date(".$row['vdate']."),";
-        $rowTotal=0;
-        foreach ($rigArray as $rig)
-        {
-          echo number_format($row[$rig],6,'.','').",";
-          $rowTotal=$rowTotal+$row[$rig];
-        }
-        if ($numOfRigs>1){
-          echo number_format($rowTotal,6,'.','').",";
-        }
-        echo "]," . PHP_EOL;
-      }
-    ?> 
-  ]);
-
-  //var date_formatter = new google.visualization.DateFormat({pattern: "MMM dd, yyyy h:mm a"}); 
-  var date_formatter = new google.visualization.DateFormat({pattern: "EEE M/d/y h:mm a"}); 
-  date_formatter.format(data, 0);
-
-  <?php
-if ($currency=="Satoshi") 
-{
-  echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 2, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
-}
-elseif ($currency=="BTC") 
-{
-  echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 6, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
-}
-else
-{
-  echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 2, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
-}
-
-if ($numOfRigs>1)
-{
-  for ($i = 1; $i <= $numOfRigs+1; $i++)
-  {
-    echo "formatter.format(data, $i);";
-  }
-}
-else
-{
-  echo "formatter.format(data, 1);";
-}
-  ?>
-
-  //showEvery = parseInt(data.getNumberOfRows() / 6);
-  
-  //parseInt(data.getNumberOfRows() / 6);
-  showEvery = 1;
-  var seriesColors = ['green', '#0000FF', 'red', 'orange'];
-  var options = {
-    strictFirstColumnType: true
-    ,colors: seriesColors
-    ,chartArea:{left:40,top:40,bottom:45,width:'100%'}
-    ,height: 300
-    ,legend: { position : 'bottom', textStyle: {color: 'gray'}}
-    ,'title':'<?=$chartTitle?>'
-    ,interpolateNulls: false
-    ,vAxes: {0: {format: '<?=$currencySymbol?>#,###'}, 1: {format: '#,###',ticks: [0,1]},}
-    ,hAxis: {
-          gridlines: {
-            count: -1,
-            units: {
-              days: {format: ['E MMM dd']},
-              hours: {format: ['h a', 'ha']},
-            }
-          }
-        }
-    ,seriesType: 'line'
-    //,series: {[barColumnNum]: {type: 'bars', targetAxisIndex: 1, color: "orange"}}
-    ,backgroundColor: 'transparent'
-  };
-
-  var view = new google.visualization.DataView(data);
-  //view.setColumns([0,1,2]);
-
-  //var chart = new google.visualization.LineChart($('#chart_div')[0]);
-  var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-  data.sort({column: 0, desc: true});
-  view.setRows(data.getSortedRows({column: 0, desc: true}));
-  //attach the error handler here, before draw()
-  google.visualization.events.addListener(chart, 'error', errorHandler);
-
-  chart.draw(view, options);
-
-  var table = new google.visualization.Table(document.getElementById('table_div'));
-  //table.setColumns([0,1,2,4]);
-  //table.setColumns(viewColumns);
-  
-  var tableOptions = 
-    {
-      allowHtml: true, 
-      showRowNumber: false, 
-      cssClassNames: { 
-        headerRow: 'headerRow',
-        tableRow: '#DCDCDC',
-        oddTableRow: 'oddTableRow',
-        selectedTableRow: 'selectedTableRow',
-        hoverTableRow: 'hoverTableRow',
-        headerCell: 'headerCell',
-        tableCell: 'tableCell',
-        rowNumberCell: 'rowNumberCell'
-        ,backgroundColor: 'transparent'
-      }
-    }
-  table.draw(data, tableOptions);
-  //table.draw(data);
-
-  google.visualization.events.addListener(chart, 'select', function() {
-    var selectedItem = chart.getSelection()[0];   
-    if (selectedItem) {
-      table.setSelection([{'row': selectedItem.row}]);
-    }
- 
-  });
-  // When the table is selected, update the graph.
-  google.visualization.events.addListener(table, 'select', function() {
-    var selectedItem = table.getSelection()[0];   
-    if (selectedItem)  {
-      //alert(selectedItem.row);
-      chart.setSelection(table.getSelection());
-      //chart.setSelection([{'row': data.getNumberOfRows() - selectedItem.row - 1}]);
-    }
-  });
-
-//errorHandler("test");
-function errorHandler(errorMessage) {
-    //curisosity, check out the error in the console
-    //console.log(errorMessage);
-    //window.alert(viewColumns);
-    var req = new XMLHttpRequest();
-    var params = "msg=" + (JSON.stringify(errorMessage)) + '&amp;<?php echo $address ?>;viewColumns=' + viewColumns + 'url=' + "?<?=$queryString?>";
-    req.open("POST", "/error.php?<?=$queryString?>");
-    req.send(params);
-
-    //simply remove the error, the user never see it
-    google.visualization.errors.removeError(errorMessage.id);
-  }
-}
-
-</script>
-<style>
+<head><style>
 .green {color: #4CAF50;} /* Green */
 .blue {color: #2196F3;} /* Blue */
 .orange {color: #ff9800;} /* Orange */
@@ -449,19 +230,6 @@ function errorHandler(errorMessage) {
 .TopRight { grid-area: TopRight; }
 .Middle { grid-area: Middle; }
 
-select {
-  // A reset of styles, including removing the default dropdown arrow
-  appearance: none;
-  // Additional resets for further consistency
-  background-color: transparent;
-  border: none;
-  padding: 0 1em 0 0;
-  margin: 0;
-  font-family: inherit;
-  font-size: inherit;
-  cursor: inherit;
-  line-height: inherit;
-}
 .timezone-select{
  width:150px;   
 }
@@ -490,7 +258,6 @@ select {
     getLatestMining();
 
   function getLatestMining(){
-
     var url = "getNicehashNow.php?id=<?=$id?>&currency=<?=$currency?>";   
     $.post( url, function(data) {
         //console.log("running");
@@ -499,12 +266,11 @@ select {
         var d = new Date();
         //$('#current_div').html("<p>Real time:"+d.toLocaleTimeString() + " " +data);
       });
-    }
-  
+    }  
 });
 
 </script>
-
+</head>
 <body bgcolor="black" onload="loadDarkMode()">
 <p>
 <div class="grid-container">
@@ -573,7 +339,7 @@ Timezone:
       else
         {echo "<option value=".$row['value'].">".$row['label']."</option>";}
     }
-?>
+    ?>
      </select>
      <br>
      Other Miners: 
@@ -595,24 +361,232 @@ Timezone:
         {echo "<option value=".$row['id'].">".$row['id']."</option>";}
 
     }
-?>
+    ?>
      </select>
-
-
     </div>
-
   </div>
   
- <ul id="series" style="list-style: none">
- <?php
- $i=1;
-  //foreach ($rigArray as $rig)
+
+<?php
+  $query = "Select distinct rigName
+    From niceHash
+    Where address='".$address."';";
+
+    $result = mysqli_query($link,$query);
+
+    $rigs = "";
+    $rigSelect = "";
+    $numOfRigs = 0;
+    while($row = mysqli_fetch_array($result))
+    {
+      $numOfRigs++;
+      $rigArray[] = $row['rigName'];
+      $rigs .= "'".$row['rigName']."',";
+
+      if ($currency=="BTC")
+        {
+          $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*1 end) as '".$row['rigName']."'";
+          $chartTitle = "Average SatosBTC per Day";
+          $currencySymbol = "";
+        }
+      elseif ($currency=="Satoshi")
       {
-        //echo "<input class=box type=checkbox id=$rig name=series value=".$i." />$rig</span>";
-        $i++;
+        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*100000 end) as '".$row['rigName']."'";
+        $chartTitle = "Average Satoshi per Day";
+        $currencySymbol = "";
       }
+    else
+      {
+        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*".$exchange_rate." end) as '".$row['rigName']."'";
+        $chartTitle = "Average Dollars per Day";
+        $currencySymbol = "$";
+      }
+        
+    }
+
+    $query = "Select  
+    ".$grouping." as vdate
+    ".$rigSelect." 
+    From rigs2 
+    Where address = '".$address."' and ts>=DATE_ADD(now(), INTERVAL ".($DaysBack*-1)." DAY) and ignoreReading='false'
+    Group by ".$grouping."
+    Order by ts;";
+    
+    //echo $query;
+
+    $result = mysqli_query($link,$query);
+
+    if (mysqli_num_rows($result)==0)
+    {
+      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
+      exit();
+    }
 ?>
-</ul>
+<script type='text/javascript'>
+  
+  var viewColumns = [0,1];
+  i = 0;
+  var data;
+
+
+
+google.load('visualization', '1', {packages: ['corechart', 'table']});
+//google.load("visualization", "1", {packages:["corechart"]});
+  google.setOnLoadCallback(drawChart);
+  function drawChart() {
+    var data = google.visualization.arrayToDataTable([
+    <?php
+      
+      if ($numOfRigs>1){
+        echo "['Date', ".$rigs."'Total'],";
+      }
+      else
+      {
+        echo "['Date', ".$rigs."],";
+      }
+      while($row = mysqli_fetch_array($result))
+      {
+        $numRows++;
+        echo "[new Date(".$row['vdate']."),";
+        $rowTotal=0;
+        foreach ($rigArray as $rig)
+        {
+          echo number_format($row[$rig],6,'.','').",";
+          $rowTotal=$rowTotal+$row[$rig];
+        }
+        if ($numOfRigs>1){
+          echo number_format($rowTotal,6,'.','').",";
+        }
+        echo "]," . PHP_EOL;
+      }
+    ?> 
+  ]);
+
+  //var date_formatter = new google.visualization.DateFormat({pattern: "MMM dd, yyyy h:mm a"}); 
+  var date_formatter = new google.visualization.DateFormat({pattern: "EEE M/d/y h:mm a"}); 
+  date_formatter.format(data, 0);
+
+<?php
+    if ($currency=="Satoshi") 
+    {
+    echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 2, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
+    }
+    elseif ($currency=="BTC") 
+    {
+    echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 6, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
+    }
+    else
+    {
+    echo "var formatter = new google.visualization.NumberFormat({fractionDigits: 2, decimalSymbol: '.',groupingSymbol: ',', negativeColor: 'red', negativeParens: true, prefix: '$currencySymbol'});";
+    }
+
+    if ($numOfRigs>1)
+    {
+    for ($i = 1; $i <= $numOfRigs+1; $i++)
+    {
+        echo "formatter.format(data, $i);";
+    }
+    }
+    else
+    {
+        echo "formatter.format(data, 1);";
+    }
+  ?>
+
+  var seriesColors = ['green', '#0000FF', 'red', 'orange'];
+  var options = {
+    strictFirstColumnType: true
+    ,colors: seriesColors
+    ,chartArea:{left:40,top:40,bottom:45,width:'100%'}
+    ,height: 300
+    ,legend: { position : 'bottom', textStyle: {color: 'gray'}}
+    ,'title':'<?=$chartTitle?>'
+    ,interpolateNulls: false
+    ,vAxes: {0: {format: '<?=$currencySymbol?>#,###'}, 1: {format: '#,###',ticks: [0,1]},}
+    ,hAxis: {
+          gridlines: {
+            count: -1,
+            units: {
+              days: {format: ['E MMM dd']},
+              hours: {format: ['h a', 'ha']},
+            }
+          }
+        }
+    ,seriesType: 'line'
+    //,series: {[barColumnNum]: {type: 'bars', targetAxisIndex: 1, color: "orange"}}
+    ,backgroundColor: 'transparent'
+  };
+  
+    function errorHandler(errorMessage) {
+        //curisosity, check out the error in the console
+        //console.log(errorMessage);
+        //window.alert(viewColumns);
+        var req = new XMLHttpRequest();
+        var params = "msg=index3" + (JSON.stringify(errorMessage)) + "&amp;<?php echo $address ?>;url=<?=$queryString?>";
+        req.open("POST", "/error.php?<?=$queryString?>");
+        req.send(params);
+
+        //simply remove the error, the user never see it
+        //google.visualization.errors.removeError(errorMessage.id);
+    }
+    //errorHandler("test");
+    
+    var view = new google.visualization.DataView(data);
+    google.visualization.events.addListener(view, 'error', errorHandler);
+  
+    var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
+    data.sort({column: 0, desc: true});
+    view.setRows(data.getSortedRows({column: 0, desc: true}));
+    //attach the error handler here, before draw()
+    google.visualization.events.addListener(view, 'error', errorHandler);
+  
+  chart.draw(view, options);
+
+  var table = new google.visualization.Table(document.getElementById('table_div'));
+  
+  //table.setColumns([0,1,2,4]);
+  //table.setColumns(viewColumns);
+  
+  var tableOptions = 
+    {
+      allowHtml: true, 
+      showRowNumber: false, 
+      cssClassNames: { 
+        headerRow: 'headerRow',
+        tableRow: '#DCDCDC',
+        oddTableRow: 'oddTableRow',
+        selectedTableRow: 'selectedTableRow',
+        hoverTableRow: 'hoverTableRow',
+        headerCell: 'headerCell',
+        tableCell: 'tableCell',
+        rowNumberCell: 'rowNumberCell'
+        ,backgroundColor: 'transparent'
+      }
+    }
+  table.draw(data, tableOptions);
+  //table.draw(data);
+
+  google.visualization.events.addListener(chart, 'select', function() {
+    var selectedItem = chart.getSelection()[0];   
+    if (selectedItem) {
+      table.setSelection([{'row': selectedItem.row}]);
+    }
+ 
+  });
+  // When the table is selected, update the graph.
+  google.visualization.events.addListener(table, 'select', function() {
+    var selectedItem = table.getSelection()[0];   
+    if (selectedItem)  {
+      //alert(selectedItem.row);
+      chart.setSelection(table.getSelection());
+      //chart.setSelection([{'row': data.getNumberOfRows() - selectedItem.row - 1}]);
+    }
+  });
+
+}
+
+</script>
+<?php if ($numRows==0) exit();?>
 
 <div id="chart_div"></div>
 <div>
