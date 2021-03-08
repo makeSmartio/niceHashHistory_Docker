@@ -45,7 +45,7 @@ $rowCount = 0;
     $address = isset($_GET['address']) ? $_GET['address'] : $address;
     $currency = isset($_GET['currency']) ? $_GET['currency'] : $currency;
     $id = isset($_GET['id']) ? $_GET['id'] : 0;
-    $DaysBack = isset($_GET['DaysBack']) ? $_GET['DaysBack'] : '3000';
+    $DaysBack = isset($_GET['DaysBack']) ? $_GET['DaysBack'] : '7';
     $darkMode = isset($_GET['darkMode']) ? $_GET['darkMode'] : $darkMode;
     $type = isset($_GET['type']) ? $_GET['type'] : 'hourly';
     $queryString = $_SERVER['QUERY_STRING'];
@@ -469,7 +469,7 @@ function errorHandler(errorMessage) {
   $(document).ready(function(){    
 
     $(".id-select").change(function(){      
-     var page_url = "?id="+$(".id-select").val()+"&type=<?=$type?>&DaysBack=3000&darkMode=<?=$darkMode?>";    
+     var page_url = "?id="+$(".id-select").val()+"&type=<?=$type?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>";    
      $(location).attr('href',page_url);
     });
 
@@ -513,7 +513,7 @@ function errorHandler(errorMessage) {
 <p>
   Days:  <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=1&darkMode=<?=$darkMode?>">1 Day</a>
   <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=7&darkMode=<?=$darkMode?>">7 Days</a>
-  <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=3000&darkMode=<?=$darkMode?>">All</a>
+  <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>">All</a>
 
   <p>
 Show: 
