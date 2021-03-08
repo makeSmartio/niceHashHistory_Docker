@@ -20,7 +20,7 @@ Nicehash does limit the number of API calls you can make against your address, i
 
 
 I included PhpMyAdmin if you want it. Bring it up with: 
-`docker run --name myadmin -d --network niceHashhistory_Docker_your-site-net --link db:db -p 8080:80 phpmyadmin`
+`docker run --name myadmin -d --network nicehashhistory_docker_your-site-net --link db:db -p 8080:80 phpmyadmin`
 
 
 ## Contributing
