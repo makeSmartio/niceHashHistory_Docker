@@ -3,7 +3,7 @@
 
 ## Getting Started
 
-This project uses Docker to make it easy to get up and running. Simply install Docker and pull this repo down with `git clone https://github.com/makeSmartio/nicehashHistory` or download and extract if you don't have git installed.
+This project uses Docker to make it easy to get up and running. Simply install Docker and pull this repo down with `git clone https://github.com/makeSmartio/niceHashHistory_Docker` or download and extract if you don't have git installed.
 
 Then bring up with `./run.sh`
 The database (mariaDB) will init with the the db/docker-entrypoint-initdb.d/* unless it already exists.
@@ -20,7 +20,7 @@ Nicehash does limit the number of API calls you can make against your address, i
 
 
 I included PhpMyAdmin if you want it. Bring it up with: 
-`docker run --name myadmin -d --network nicehashhistory_your-site-net --link db:db -p 8080:80 phpmyadmin`
+`docker run --name myadmin -d --network niceHashhistory_Docker_your-site-net --link db:db -p 8080:80 phpmyadmin`
 
 
 ## Contributing
