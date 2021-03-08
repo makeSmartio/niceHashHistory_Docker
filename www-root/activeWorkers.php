@@ -161,56 +161,25 @@ function loadDarkMode() {
       echo "Failed to connect to MySQL: " . mysqli_connect_error();
     }
 
-    if ($id != 0)
+    $query = "Select distinct address
+    From niceHashKeys
+    order by id desc;";
+
+    $result = mysqli_query($link,$query);
+
+    if (mysqli_num_rows($result)==0)
     {
-      $query = "Select distinct address
-      From niceHashKeys
-      Where id=".$id.";";
-
-      $result = mysqli_query($link,$query);
-
-      if (mysqli_num_rows($result)==0)
-      {
-        echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
-        //exit();
-        $address = '';
-        $id=1;
-      }
-      else
-      {
-      $getByID = mysqli_fetch_assoc($result);
-      $address = $getByID['address'];
-      //echo "id:$id address:$address";
-      }
+      echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
+      //exit();
+      $address = '';
+      $id=1;
     }
     else
     {
-  
-      $query = "Select  id
-      From niceHash 
-      Where address = '".$address."' and ignoreReading='false' limit 1;";
-      
-      //echo $query;
-  
-      $result = mysqli_query($link,$query);
-  
-      if (mysqli_num_rows($result)==0)
-      {
-        echo "<p><p>No data for this address yet. Did you <a href=addMe.php>add</a> yourself?";
-        //exit();
-        //$address = '';
-      }
-      
-      $query = "Select min(id) as id 
-      From niceHashKeys
-      Where address='".$address."';";
-  
-      $result = mysqli_query($link,$query);
-      $getByID = mysqli_fetch_assoc($result);
-      $id = $getByID['id'];
+    $getByID = mysqli_fetch_assoc($result);
+    $address = $getByID['address'];
+    //echo "id:$id address:$address";
     }
-  
-    //$query = "Select distinct rigName, rigName&workerId as rigNameAndworkerId
 
     $query = "Select distinct rigName
     From niceHash
@@ -562,7 +531,8 @@ Show:
   }
 ?>
 <p>
-Check out a new version of this page with data from a different API and let me know your thoughts! <a href=rigs2.php>rigs2</a>
+This is the older API with data that seems less accurate. The newer version is here: 
+<a href="index.php?type=<?=$type?>&id=<?=$id?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>">rigs2</a>
 </div>
   <div class="TopRight"  text-align: right;>
   <a href=addMe.php>Add Me!</a>
