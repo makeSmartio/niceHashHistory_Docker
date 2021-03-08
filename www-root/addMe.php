@@ -14,7 +14,7 @@ $link=Connection();
 <head>
 	<meta charset="UTF-8">
 	<title>addMe</title>
-	<link rel="stylesheet" href="../DarkModeCSS/style.css">
+	<link rel="stylesheet" href="DarkModeCSS/style.css">
 
 
 </head>
@@ -36,7 +36,6 @@ This service polls the Nicehash API which can be spotty at times, especially lat
 $errors = '';
 $address = isset($_POST['address']) ? (trim($_POST['address'])) : '';
 $email = isset($_POST['email']) ? ($_POST['email']) : '';
-$message = isset($_POST['email']) ? ($_POST['email']) : 'email';
 $publicIp=$_SERVER['REMOTE_ADDR'];
 $agent = $_SERVER['HTTP_USER_AGENT']??'null';
 $referer = $_SERVER['HTTP_REFERER']??'?';
@@ -70,15 +69,12 @@ else
 		setcookie('address', $address, [
 			'expires' => time() + (10 * 365 * 24 * 60 * 60),
 			'path' => '/',
-			'domain' => 'nicehashhistory.com',
 			'secure' => true,
 			'httponly' => true,
 			'samesite' => 'None',
 		]);
 	
-		echo "<p><b>Addded! $address you can view your graphs here (in up to 5 minutes): <a href='/?address=$address'>https://nicehashHistory/?$address</a></b><p>";
-		//$page = file_get_contents('https://nicehashhistory.com/email.php?address='.$address);
-		//echo $page;
+		echo "<p><b>Addded! $address you can view your graphs here (in up to 5 minutes): <a href='/?address=$address'>/?$address</a></b><p>";
 		exit();
 	}
 ?>
