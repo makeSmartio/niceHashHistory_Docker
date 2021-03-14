@@ -1,84 +1,93 @@
-
-
 .dark,
 .dark * {
-    background-color: #222;
-    color: #e6e6e6;
-    border-color: #e6e6e6;
-    th {
-      padding-top: 12px;
-      padding-bottom: 12px;
-      text-align: left;
-      background-color: rgb(83, 133, 180);
-      border-color: rgb(151, 150, 168) !important;
-      color: white;
-    }
-
-    .oddTableRow { background-color:#BEBEBE; }
-    .tableRow { background-color:#DCDCDC; } 
-
+  background-color: #222;
+  color: #e6e6e6;
+  border-color: #e6e6e6;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    max-width: 50rem;
-    margin: 0 auto;
-    padding: 0 0.9375rem;   
-    font-family: Arial;
-    color: gray;
-    background-color: #F8F8F8;
-
+  display: flex;
+  flex-direction: column;
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 0 0.9375rem;
+  font-family: Arial;
+  color: gray;
+  background-color: #f8f8f8;
 }
 
-	input[type=text]{
-    width:250px;
-    border:2px solid #aaa;
-    border-radius:4px;
-    margin:8px 0;
-    outline:none;
-    padding:8px;
-    box-sizing:border-box;
-    transition:.3s;
-  }
-  input[type=submit]{
-    width:100px;
-    border:2px solid #aaa;
-    border-radius:4px;
-    margin:8px 0;
-    outline:none;
-    padding:8px;
-    box-sizing:border-box;
-    transition:.3s;
-  }
-  
-  input[type=text]:focus{
-    border-color:dodgerBlue;
-    box-shadow:0 0 8px 0 dodgerBlue;
-  }
-  
-.green {color: #4CAF50;} /* Green */
-.blue {color: #2196F3;} /* Blue */
-.orange {color: #ff9800;} /* Orange */
-.red {color: #f44336;} /* Red */ 
-.gray {color: #e7e7e7; color: black;} /* Gray */ 
+input[type="text"] {
+  width: 250px;
+  border: 2px solid #aaa;
+  border-radius: 4px;
+  margin: 8px 0;
+  outline: none;
+  padding: 8px;
+  box-sizing: border-box;
+  transition: 0.3s;
+}
+
+input[type="submit"] {
+  width: 100px;
+  border: 2px solid #aaa;
+  border-radius: 4px;
+  margin: 8px 0;
+  outline: none;
+  padding: 8px;
+  box-sizing: border-box;
+  transition: 0.3s;
+}
+
+input[type="text"]:focus {
+  border-color: dodgerBlue;
+  box-shadow: 0 0 8px 0 dodgerBlue;
+}
+
+/* Green */
+.green {
+  color: #4caf50;
+}
+
+/* Blue */
+.blue {
+  color: #2196f3;
+}
+
+/* Orange */
+.orange {
+  color: #ff9800;
+}
+
+/* Red */
+.red {
+  color: #f44336;
+}
+
+/* Gray */
+.gray {
+  color: #e7e7e7;
+  color: black;
+}
 
 .switch {
-    align-self: flex-start;
-    margin: 0.9375rem;
+  align-self: flex-start;
+  margin: 0.9375rem;
 }
+
 .inner-switch {
-    display: inline-block;
-    cursor: pointer;
-    border: 1px solid #555;
-    border-radius: 1.25rem;
-    width: 3.125rem;
-    text-align: center;
-    font-size: 1rem;
-    padding: 0.1875rem;
-    margin-left: 0.3125rem;
+  display: inline-block;
+  cursor: pointer;
+  border: 1px solid #555;
+  border-radius: 1.25rem;
+  width: 3.125rem;
+  text-align: center;
+  font-size: 1rem;
+  padding: 0.1875rem;
+  margin-left: 0.3125rem;
 }
+
 /* Tables */
+
 th {
   padding-top: 12px;
   padding-bottom: 12px;
@@ -88,42 +97,59 @@ th {
   color: white;
 }
 
-.oddTableRow { background-color:#DCDCDC; }
-/*.tableRow { background-color:#DCDCDC; } #BEBEBE*/
-.hoverTableRow {background-color: rgba(233, 235, 154, 0.76) !important;}
+.tableRow {
+  background-color: #dcdcdc;
+}
 
-tr:hover {background-color: rgba(233, 235, 154, 0.76) !important;}
+.oddTableRow {
+  background-color: #dcdcdc;
+}
+
+/*.tableRow { background-color:#DCDCDC; } #BEBEBE*/
+
+.hoverTableRow {
+  background-color: rgba(233, 235, 154, 0.76) !important;
+}
+
+tr:hover {
+  background-color: rgba(233, 235, 154, 0.76) !important;
+}
+
 .selectedTableRow {
-    background-color: rgba(141, 186, 238, 0.76) !important;
+  background-color: rgba(141, 186, 238, 0.76) !important;
 }
 
 .myButton {
-    box-shadow:inset 0px -3px 7px 0px #599bb3;
-    background:linear-gradient(to bottom, #3d94f6 5%, #1e62d0 100%);
-    background-color:#599bb3;
-    border-radius:3px;
-    border:1px solid #29668f;
-    display:inline-block;
-    cursor:pointer;
-    color:#ffffff;
-    font-family:Arial;
-    font-size:15px;
-    padding:5px 10px;
-    text-decoration:none;
-    text-shadow:0px 1px 0px #3d768a;
+  box-shadow: inset 0px -3px 7px 0px #599bb3;
+  background: linear-gradient(to bottom, #3d94f6 5%, #1e62d0 100%);
+  background-color: #599bb3;
+  border-radius: 3px;
+  border: 1px solid #29668f;
+  display: inline-block;
+  cursor: pointer;
+  color: #ffffff;
+  font-family: Arial;
+  font-size: 15px;
+  padding: 5px 10px;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #3d768a;
 }
+
 .myButton:hover {
-    background:linear-gradient(to bottom, #1e62d0 5%, #1e62d0 100%);
-    background-color:#408c99;
+  background: linear-gradient(to bottom, #1e62d0 5%, #1e62d0 100%);
+  background-color: #408c99;
 }
+
 .myButton:active {
-    position:relative;
-    top:1px;
+  position: relative;
+  top: 1px;
 }
+
 .disabled {
-    background:linear-gradient(to bottom, #555 5%, #555 100%);
-    position:relative;
-    top:1px;
-    cursor: not-allowed;
-   pointer-events: none;
+  background: linear-gradient(to bottom, #555 5%, #555 100%);
+  position: relative;
+  top: 1px;
+  cursor: not-allowed;
+  pointer-events: none;
 }
+
