@@ -1,7 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito&display=swap");
+
 .dark,
 .dark * {
   background-color: #222;
-  color: #fff;
+  color: #e6e6e6;
   border-color: #e6e6e6;
 }
 
@@ -11,8 +13,8 @@ body {
   max-width: 50rem;
   margin: 0 auto;
   padding: 0 0.9375rem;
-  font-family: Arial;
-  color: gray;
+  font-family: "Nunito", sans-serif;
+  color: #fff;
   background-color: #f8f8f8;
 }
 
