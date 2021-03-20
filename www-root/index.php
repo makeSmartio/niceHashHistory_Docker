@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head>  
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
     <script src="//code.jquery.com/jquery-1.11.0.js"></script>
@@ -8,10 +8,12 @@
 
     <script src="https://www.google.com/jsapi"></script>
   <meta name="viewport" content="initial-scale=1.0" />
-<link rel="stylesheet" href="../DarkModeCSS/style.css">
+<link rel="stylesheet" href="DarkModeCSS/style.css">
 <link rel="apple-touch-icon" href="/favicon-180.png">
 
 <?php
+date_default_timezone_set('UTC'); // YOUR timezone, of the server
+
 $time = microtime();
 $time = explode(' ', $time);
 $time = $time[1] + $time[0];
@@ -72,8 +74,8 @@ $rowCount = 0;
       'httponly' => true,
       'samesite' => 'None',
   ]);
-  //if ($address != '3DNiqKSF34qFqaMMnMGjjnARd7NgXgtdZ9')
-    {
+
+  {
       setcookie('address', $address, [
         'expires' => time() + (10 * 365 * 24 * 60 * 60),
         'path' => '/',
@@ -126,7 +128,7 @@ function loadDarkMode() {
   $exchange_rate = $my_array[2]["rate"];
 
 
-  $timeOffset=$timezone;
+  $timeOffset=0;//$timezone;
 
   if ($type == 'all')
   {
@@ -162,7 +164,8 @@ function loadDarkMode() {
     {
       $query = "Select address, id
       From niceHashKeys
-      order by id desc;";
+      where address='$address'
+      order by id;";
       
       //echo $sql;
 
@@ -230,6 +233,16 @@ function loadDarkMode() {
 .TopRight { grid-area: TopRight; }
 .Middle { grid-area: Middle; }
 
+.grid-container2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  gap: 0px 100px;
+  grid-template-areas:
+    "TopLeft TopRight";
+}
+
+
 .timezone-select{
  width:150px;   
 }
@@ -245,12 +258,12 @@ function loadDarkMode() {
     });
 
     $(".currency-select").change(function(){      
-     var page_url = "?currency="+$(".currency-select").val()+"&type=<?=$type?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>";    
+     var page_url = "?currency="+$(".currency-select").val()+"&id=<?=$id?>&type=<?=$type?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>";    
      $(location).attr('href',page_url);
     });
 
     $(".timezone-select").change(function(){      
-     var page_url = "?timezone="+$(".timezone-select").val()+"&";    
+     var page_url = "?timezone="+$(".timezone-select").val()+"&type=<?=$type?>&id=<?=$id?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>";    
      $(location).attr('href',page_url);
     });
 
@@ -282,7 +295,7 @@ function loadDarkMode() {
 <p>
   Days:  <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=1&darkMode=<?=$darkMode?>">1 Day</a>
   <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=7&darkMode=<?=$darkMode?>">7 Days</a>
-  <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkMode?>">All</a>
+  <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=3000&darkMode=<?=$darkMode?>">All</a>
 
   <p>
 Show: 
@@ -318,30 +331,11 @@ We are now using the newer API. If you want to see the old API with data that go
   <div class="TopRight"  text-align: right;>
   <a href=addMe.php>Add Me!</a>
   <br>
-    Dark mode: <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=3&darkMode=<?=$darkModeSwitch?>">Switch</a>
+    Dark mode: <a href="?type=<?=$type?>&id=<?=$id?>&DaysBack=<?=$DaysBack?>&darkMode=<?=$darkModeSwitch?>">Switch</a>
     <br>
     <a href=contactUs.php>Contact Us/Feedback</a>
     <br>
 
-Timezone: 
-     <select class="timezone-select" name="timezone-select">
-  <?php
-     $query = "Select value, label
-    From timezones;";
-
-    $result = mysqli_query($link,$query);
-
-    while($row = mysqli_fetch_array($result))
-    {
-      //echo $id;
-      if ($timezone==$row['value'])  
-        {echo "<option value=".$row['value']." selected>".$row['label']."</option>";}
-      else
-        {echo "<option value=".$row['value'].">".$row['label']."</option>";}
-    }
-    ?>
-     </select>
-     <br>
      Other Miners: 
      <select class="id-select">
   <?php
@@ -386,7 +380,7 @@ Timezone:
       if ($currency=="BTC")
         {
           $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*1 end) as '".$row['rigName']."'";
-          $chartTitle = "Average SatosBTC per Day";
+          $chartTitle = "Average BTC per Day";
           $currencySymbol = "";
         }
       elseif ($currency=="Satoshi")
@@ -397,7 +391,7 @@ Timezone:
       }
     else
       {
-        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability> localProfitability*1.5 then localProfitability else profitability end)*".$exchange_rate." end) as '".$row['rigName']."'";
+        $rigSelect .= ",avg(case when rigName='".$row['rigName']."' then (case when profitability>localProfitability*1.5 then localProfitability else profitability end)*".$exchange_rate." end) as '".$row['rigName']."'";
         $chartTitle = "Average Dollars per Day";
         $currencySymbol = "$";
       }
@@ -427,9 +421,24 @@ Timezone:
   var viewColumns = [0,1];
   i = 0;
   var data;
-
-
-
+  
+  <?php
+  if ($type=="all")
+  {
+    echo "var user_timezone_offset = new Date().getTimezoneOffset()";
+  }
+  elseif ($type=="hourly")
+  {
+    echo "var user_timezone_offset = new Date().getTimezoneOffset()/60";
+  }
+  else
+  {
+    echo "var user_timezone_offset = 0";
+  }
+  ?>
+  
+  console.log(user_timezone_offset);
+        
 google.load('visualization', '1', {packages: ['corechart', 'table']});
 //google.load("visualization", "1", {packages:["corechart"]});
   google.setOnLoadCallback(drawChart);
@@ -444,10 +453,17 @@ google.load('visualization', '1', {packages: ['corechart', 'table']});
       {
         echo "['Date', ".$rigs."],";
       }
+      
       while($row = mysqli_fetch_array($result))
       {
         $numRows++;
-        echo "[new Date(".$row['vdate']."),";
+
+        //$date = new DateTime($row['vdate'], new DateTimeZone('America/New_York')); // USER's timezone
+        //$date->setTimezone(new DateTimeZone('America/New_York'));
+        //echo $date->format('Y-m-d h:i:s a');
+        
+        $date = $row['vdate'];
+        echo "[new Date(".$date."-user_timezone_offset),";
         $rowTotal=0;
         foreach ($rigArray as $rig)
         {
@@ -589,34 +605,159 @@ google.load('visualization', '1', {packages: ['corechart', 'table']});
 <?php if ($numRows==0) exit();?>
 
 <div id="chart_div"></div>
-<div>
+
+<div id="current_div"></div>
+<div class="grid-container2">
+  <div class="TopLeft">
+    <?php 
+    echo "Bitcoin price: USD $".number_format($exchange_rate)." <p>Show values in: ";
+    echo "<select class=currency-select>";
+    if ($currency=="Satoshi")
+    {
+      echo "<option selected>Satoshi</option>";
+      echo "<option>BTC</option>";
+      echo "<option>USD</option>";
+    }
+    elseif ($currency=="BTC")
+    {
+      echo "<option>Satoshi</option>";
+      echo "<option selected>BTC</option>";
+      echo "<option>USD</option>";
+    }
+    else
+    {
+      echo "<option>Satoshi</option>";
+      echo "<option>BTC</option>";
+      echo "<option selected>USD</option>";
+    }
+    echo "</select>"
+    ?>
+    <div id="table_div"></div>
+  </div>
+<div class="TopRight">
+<p>
+Average for this time period: 
+<br>
+
 <?php 
-echo "Bitcoin price: USD $".number_format($exchange_rate)." <p>Show values in: ";
-echo "<select class=currency-select>";
-if ($currency=="Satoshi")
+$query = "Select avg(speedAccepted) as speedAccepted
+      From (select sum(speedAccepted) as speedAccepted 
+          from stats 
+          where ts>=DATE_ADD(now(), INTERVAL ".($DaysBack*-1)." DAY) and address = '".$address."' 
+          group by batchId) r2;"; 
+
+//echo $query;
+$result = mysqli_query($link,$query);
+
+if (mysqli_num_rows($result)==0)
 {
-  echo "<option selected>Satoshi</option>";
-  echo "<option>BTC</option>";
-  echo "<option>USD</option>";
-}
-elseif ($currency=="BTC")
-{
-  echo "<option>Satoshi</option>";
-  echo "<option selected>BTC</option>";
-  echo "<option>USD</option>";
+  echo "<p>No data for this address yet. ";
 }
 else
 {
-  echo "<option>Satoshi</option>";
-  echo "<option>BTC</option>";
-  echo "<option selected>USD</option>";
+  $rows = mysqli_fetch_assoc($result);
+  $speedAccepted = $rows['speedAccepted'];
+  echo "<br>Speed Accepted: ".number_format($speedAccepted*1,2)." MH/s"; 
 }
-echo "</select>"
-?>
-</div>
-<div id="current_div"></div>
+echo "<br>Profitability: ";
 
-<div id="table_div"></div>
+$query = "Select avg(profitability) as totalAverage
+From (select sum(case when profitability>localProfitability*1.5 then localProfitability else profitability end) as profitability
+      from rigs2 where address = '".$address."' and ts>=DATE_ADD(now(), INTERVAL ".($DaysBack*-1)." DAY) 
+      group by batchId) r2;";
+
+//echo $query;
+$result = mysqli_query($link,$query);
+
+if (mysqli_num_rows($result)==0)
+{
+  echo "<p>No data for this address yet. ";
+}
+else
+{
+  $rows = mysqli_fetch_assoc($result);
+  $totalAverage = $rows['totalAverage'];
+  if ($currency=="BTC")
+  {
+    echo "".number_format($totalAverage*1,6)."/day"; 
+    echo "<br><br>Profitability/Hashrate: ".number_format($totalAverage/$speedAccepted,6)."/day";
+  }
+  elseif ($currency=="Satoshi")
+  {
+    echo "".number_format($totalAverage*100000,2)."/day"; 
+    echo "<br><br>Profitability/Hashrate: ".number_format($totalAverage*100000/$speedAccepted,6)."/day";
+  }
+  else
+  {
+    echo "$".number_format($totalAverage*$exchange_rate,2)."/day";
+    echo "<br><br>Profitability/Hashrate: $".number_format($totalAverage*$exchange_rate/$speedAccepted,7)."/day";
+  }
+}
+?>
+<hr>
+<p>Average for all data collected: 
+<br>
+
+<?php 
+$query = "Select avg(speedAccepted) as speedAccepted
+From (select sum(speedAccepted) as speedAccepted 
+    from stats 
+    where address = '".$address."' 
+    group by batchId) r2;"; 
+
+//echo $query;
+$result = mysqli_query($link,$query);
+
+if (mysqli_num_rows($result)==0)
+{
+  echo "<p>No data for this address yet. ";
+}
+else
+{
+  $rows = mysqli_fetch_assoc($result);
+  $speedAccepted = $rows['speedAccepted'];
+  echo "<br>Speed Accepted: ".number_format($speedAccepted*1,2)." MH/s"; 
+}
+echo "<br>Profitability: ";
+
+$query = "Select avg(profitability) as totalAverage
+From (select sum(case when profitability>localProfitability*1.5 then localProfitability else profitability end) as profitability
+      from rigs2 where address = '".$address."' 
+      group by batchId) r2;";
+
+//echo $query;
+$result = mysqli_query($link,$query);
+
+if (mysqli_num_rows($result)==0)
+{
+  echo "<p>No data for this address yet. ";
+  //exit();
+  $address = '';
+}
+else
+{
+  $rows = mysqli_fetch_assoc($result);
+  $totalAverage = $rows['totalAverage'];
+  if ($currency=="BTC")
+  {
+    echo "".number_format($totalAverage*1,6)."/day"; 
+    echo "<br><br>Profitability/Hashrate: ".number_format($totalAverage/$speedAccepted,6)."/day";
+  }
+  elseif ($currency=="Satoshi")
+  {
+    echo "".number_format($totalAverage*100000,2)."/day"; 
+    echo "<br><br>Profitability/Hashrate: ".number_format($totalAverage*100000/$speedAccepted,6)."/day";
+  }
+  else
+  {
+    echo "$".number_format($totalAverage*$exchange_rate,2)."/day";
+    echo "<br><br>Profitability/Hashrate: $".number_format($totalAverage*$exchange_rate/$speedAccepted,7)."/day";
+  }
+}
+?>
+  </div>
+</div>
+
 </form>
 <?php
 //echo $query;

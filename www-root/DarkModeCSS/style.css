@@ -1,7 +1,7 @@
 .dark,
 .dark * {
   background-color: #222;
-  color: #fff;
+  color: gray;
   border-color: #e6e6e6;
 }
 
