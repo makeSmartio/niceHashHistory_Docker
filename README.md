@@ -2,6 +2,7 @@
  Service to track Nicehash Profitability
 
 ## Getting Started
+This project uses an API that is no longer supported by NiceHash. I am leaving this code out there, because it is a good framwork for consuming an API on a schedule and storing data in a MariaDB/MYSQL database fronted by PHP with NGINX. 
 
 This project uses Docker to make it easy to get up and running. Simply install Docker and pull this repo down with `git clone https://github.com/makeSmartio/niceHashHistory_Docker` or download and extract if you don't have git installed.
 
